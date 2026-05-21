@@ -20,9 +20,66 @@ class AgentServiceImages extends HTMLElement {
   }
 
   connectedCallback() {
+    this.applyTheme();
+    this.themeObserver = new MutationObserver(() => this.applyTheme());
+    this.themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme', 'style'],
+    });
+    if (document.body) {
+      this.themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'data-theme', 'style'],
+      });
+    }
+    this.themeMQ = window.matchMedia('(prefers-color-scheme: dark)');
+    this.themeMQHandler = () => this.applyTheme();
+    this.themeMQ.addEventListener('change', this.themeMQHandler);
+
     for (const project of this.projects) {
       this.loadProject(project);
     }
+  }
+
+  disconnectedCallback() {
+    this.themeObserver && this.themeObserver.disconnect();
+    if (this.themeMQ && this.themeMQHandler) {
+      this.themeMQ.removeEventListener('change', this.themeMQHandler);
+    }
+  }
+
+  applyTheme() {
+    const bg = this.effectiveHostBg();
+    let isDark;
+    if (bg) {
+      isDark = this.isDarkColor(bg);
+    } else {
+      isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    this.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  }
+
+  effectiveHostBg() {
+    let el = this.parentElement || document.body;
+    while (el) {
+      const c = getComputedStyle(el).backgroundColor;
+      if (c && c !== 'transparent' && !/rgba?\(0,\s*0,\s*0,\s*0\)/.test(c)) {
+        return c;
+      }
+      el = el.parentElement;
+    }
+    return null;
+  }
+
+  isDarkColor(rgbStr) {
+    const nums = rgbStr.match(/[\d.]+/g);
+    if (!nums || nums.length < 3) return false;
+    const r = Number(nums[0]);
+    const g = Number(nums[1]);
+    const b = Number(nums[2]);
+    if ([r, g, b].some((n) => Number.isNaN(n))) return false;
+    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return lum < 0.5;
   }
 
   async loadProject(project) {
@@ -154,29 +211,27 @@ class AgentServiceImages extends HTMLElement {
           --stream-qa-bg: #ddf4ff;
           --err-bg: #ffebe9;
         }
-        @media (prefers-color-scheme: dark) {
-          :host {
-            color: #e6edf3;
-            --primary: #2f81f7;
-            --border: #30363d;
-            --muted: #8b949e;
-            --bg-subtle: #161b22;
-            --surface: transparent;
-            --success: #3fb950;
-            --warn: #d29922;
-            --danger: #f85149;
-            --badge-running-bg: rgba(63, 185, 80, 0.15);
-            --badge-loading-bg: rgba(47, 129, 247, 0.15);
-            --badge-not-deployed-bg: rgba(139, 148, 158, 0.15);
-            --badge-no-image-bg: rgba(210, 153, 34, 0.15);
-            --badge-error-bg: rgba(248, 81, 73, 0.15);
-            --badge-other-bg: rgba(210, 153, 34, 0.15);
-            --stream-bg: rgba(139, 148, 158, 0.18);
-            --stream-prod-bg: rgba(248, 81, 73, 0.18);
-            --stream-staging-bg: rgba(210, 153, 34, 0.18);
-            --stream-qa-bg: rgba(47, 129, 247, 0.18);
-            --err-bg: rgba(248, 81, 73, 0.12);
-          }
+        :host([data-theme="dark"]) {
+          color: #e6edf3;
+          --primary: #2f81f7;
+          --border: #30363d;
+          --muted: #8b949e;
+          --bg-subtle: #161b22;
+          --surface: transparent;
+          --success: #3fb950;
+          --warn: #d29922;
+          --danger: #f85149;
+          --badge-running-bg: rgba(63, 185, 80, 0.15);
+          --badge-loading-bg: rgba(47, 129, 247, 0.15);
+          --badge-not-deployed-bg: rgba(139, 148, 158, 0.15);
+          --badge-no-image-bg: rgba(210, 153, 34, 0.15);
+          --badge-error-bg: rgba(248, 81, 73, 0.15);
+          --badge-other-bg: rgba(210, 153, 34, 0.15);
+          --stream-bg: rgba(139, 148, 158, 0.18);
+          --stream-prod-bg: rgba(248, 81, 73, 0.18);
+          --stream-staging-bg: rgba(210, 153, 34, 0.18);
+          --stream-qa-bg: rgba(47, 129, 247, 0.18);
+          --err-bg: rgba(248, 81, 73, 0.12);
         }
         .root { padding: 1rem 1.25rem; max-width: 1400px; margin: 0 auto; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
