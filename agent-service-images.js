@@ -120,9 +120,45 @@ class AgentServiceImages extends HTMLElement {
           --border: #d0d7de;
           --muted: #656d76;
           --bg-subtle: #f6f8fa;
+          --surface: #ffffff;
           --success: #1a7f37;
           --warn: #9a6700;
           --danger: #cf222e;
+          --badge-running-bg: #dafbe1;
+          --badge-loading-bg: #ddf4ff;
+          --badge-not-deployed-bg: #f6f8fa;
+          --badge-no-image-bg: #fff8c5;
+          --badge-error-bg: #ffebe9;
+          --badge-other-bg: #fff8c5;
+          --stream-bg: #eaeef2;
+          --stream-prod-bg: #ffebe9;
+          --stream-staging-bg: #fff8c5;
+          --stream-qa-bg: #ddf4ff;
+          --err-bg: #ffebe9;
+        }
+        @media (prefers-color-scheme: dark) {
+          :host {
+            color: #e6edf3;
+            --primary: #2f81f7;
+            --border: #30363d;
+            --muted: #8b949e;
+            --bg-subtle: #161b22;
+            --surface: transparent;
+            --success: #3fb950;
+            --warn: #d29922;
+            --danger: #f85149;
+            --badge-running-bg: rgba(63, 185, 80, 0.15);
+            --badge-loading-bg: rgba(47, 129, 247, 0.15);
+            --badge-not-deployed-bg: rgba(139, 148, 158, 0.15);
+            --badge-no-image-bg: rgba(210, 153, 34, 0.15);
+            --badge-error-bg: rgba(248, 81, 73, 0.15);
+            --badge-other-bg: rgba(210, 153, 34, 0.15);
+            --stream-bg: rgba(139, 148, 158, 0.18);
+            --stream-prod-bg: rgba(248, 81, 73, 0.18);
+            --stream-staging-bg: rgba(210, 153, 34, 0.18);
+            --stream-qa-bg: rgba(47, 129, 247, 0.18);
+            --err-bg: rgba(248, 81, 73, 0.12);
+          }
         }
         .root { padding: 1rem 1.25rem; max-width: 1400px; margin: 0 auto; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
@@ -141,7 +177,7 @@ class AgentServiceImages extends HTMLElement {
         .project-meta { font-weight: 400; color: var(--muted); font-size: 0.85rem; }
         table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
         th, td { text-align: left; padding: 0.55rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-        th { background: #fff; font-weight: 600; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        th { background: var(--surface); font-weight: 600; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
         tr:last-child td { border-bottom: 0; }
         td.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; word-break: break-all; }
         .tag { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; background: var(--bg-subtle); padding: 0.1rem 0.4rem; border-radius: 4px; word-break: break-all; }
@@ -149,18 +185,18 @@ class AgentServiceImages extends HTMLElement {
           display: inline-block; padding: 0.1rem 0.5rem; border-radius: 999px;
           font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
         }
-        .badge-running { background: #dafbe1; color: var(--success); }
-        .badge-loading { background: #ddf4ff; color: var(--primary); }
-        .badge-not-deployed { background: #f6f8fa; color: var(--muted); }
-        .badge-no-image { background: #fff8c5; color: var(--warn); }
-        .badge-error { background: #ffebe9; color: var(--danger); }
-        .badge-other { background: #fff8c5; color: var(--warn); }
-        .stream { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 4px; font-size: 0.72rem; font-weight: 600; background: #eaeef2; color: var(--muted); }
-        .stream-PRODUCTION { background: #ffebe9; color: var(--danger); }
-        .stream-STAGING { background: #fff8c5; color: var(--warn); }
-        .stream-QA { background: #ddf4ff; color: var(--primary); }
+        .badge-running { background: var(--badge-running-bg); color: var(--success); }
+        .badge-loading { background: var(--badge-loading-bg); color: var(--primary); }
+        .badge-not-deployed { background: var(--badge-not-deployed-bg); color: var(--muted); }
+        .badge-no-image { background: var(--badge-no-image-bg); color: var(--warn); }
+        .badge-error { background: var(--badge-error-bg); color: var(--danger); }
+        .badge-other { background: var(--badge-other-bg); color: var(--warn); }
+        .stream { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 4px; font-size: 0.72rem; font-weight: 600; background: var(--stream-bg); color: var(--muted); }
+        .stream-PRODUCTION { background: var(--stream-prod-bg); color: var(--danger); }
+        .stream-STAGING { background: var(--stream-staging-bg); color: var(--warn); }
+        .stream-QA { background: var(--stream-qa-bg); color: var(--primary); }
         .empty, .err { padding: 1rem; color: var(--muted); }
-        .err { color: var(--danger); background: #ffebe9; }
+        .err { color: var(--danger); background: var(--err-bg); }
         .skeleton { display: inline-block; height: 0.9rem; background: var(--bg-subtle); border-radius: 4px; min-width: 8rem; }
       </style>
       <div class="root">
