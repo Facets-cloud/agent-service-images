@@ -1,3 +1,10 @@
+const EXCLUDED_ENVS = new Set([
+  'tekion-cp',
+  'netcore-cp',
+  'mystifly-cp',
+  'tata-digital',
+]);
+
 class AgentServiceImages extends HTMLElement {
   constructor() {
     super();
@@ -32,10 +39,11 @@ class AgentServiceImages extends HTMLElement {
       const metas = (await metaResp.json()) || [];
       const stateById = new Map(metas.map((m) => [m.clusterId, m.clusterState]));
 
-      const running = clusters.filter(
+      const visible = clusters.filter((c) => !EXCLUDED_ENVS.has(c.name));
+      const running = visible.filter(
         (c) => stateById.get(c.id) === 'RUNNING'
       );
-      state.hiddenCount = clusters.length - running.length;
+      state.hiddenCount = visible.length - running.length;
 
       state.rows = running.map((c) => ({
         clusterId: c.id,
