@@ -6,7 +6,7 @@ class AgentServiceImages extends HTMLElement {
     this.projects = ['capillary-cloud', 'fcp', 'saas-cp'];
     this.projectState = {};
     for (const p of this.projects) {
-      this.projectState[p] = { phase: 'loading', rows: [], error: null };
+      this.projectState[p] = { phase: 'loading', rows: [], error: null, hiddenCount: 0 };
     }
 
     this.render();
@@ -21,13 +21,23 @@ class AgentServiceImages extends HTMLElement {
   async loadProject(project) {
     const state = this.projectState[project];
     try {
-      const resp = await fetch(
-        `/cc-ui/v1/stacks/${encodeURIComponent(project)}/clusters`
-      );
-      if (!resp.ok) throw new Error(`HTTP ${resp.status} listing environments`);
-      const clusters = await resp.json();
+      const [clustersResp, metaResp] = await Promise.all([
+        fetch(`/cc-ui/v1/stacks/${encodeURIComponent(project)}/clusters`),
+        fetch(`/cc-ui/v1/stacks/${encodeURIComponent(project)}/clusters-metadata`),
+      ]);
+      if (!clustersResp.ok) throw new Error(`HTTP ${clustersResp.status} listing environments`);
+      if (!metaResp.ok) throw new Error(`HTTP ${metaResp.status} loading cluster metadata`);
 
-      state.rows = (clusters || []).map((c) => ({
+      const clusters = (await clustersResp.json()) || [];
+      const metas = (await metaResp.json()) || [];
+      const stateById = new Map(metas.map((m) => [m.clusterId, m.clusterState]));
+
+      const running = clusters.filter(
+        (c) => stateById.get(c.id) === 'RUNNING'
+      );
+      state.hiddenCount = clusters.length - running.length;
+
+      state.rows = running.map((c) => ({
         clusterId: c.id,
         envName: c.name,
         releaseStream: c.releaseStream || '',
@@ -210,7 +220,7 @@ class AgentServiceImages extends HTMLElement {
 
     this.shadowRoot.getElementById('refresh').addEventListener('click', () => {
       for (const p of this.projects) {
-        this.projectState[p] = { phase: 'loading', rows: [], error: null };
+        this.projectState[p] = { phase: 'loading', rows: [], error: null, hiddenCount: 0 };
         this.renderProject(p);
         this.loadProject(p);
       }
@@ -247,10 +257,14 @@ class AgentServiceImages extends HTMLElement {
       return;
     }
 
+    const hiddenLabel = state.hiddenCount
+      ? ` · ${state.hiddenCount} non-running hidden`
+      : '';
+
     if (!state.rows.length) {
       section.innerHTML = `
-        <div class="project-header"><span>${this.esc(project)}</span><span class="project-meta">0 environments</span></div>
-        <div class="empty">No environments found in this project.</div>
+        <div class="project-header"><span>${this.esc(project)}</span><span class="project-meta">0 running environments${this.esc(hiddenLabel)}</span></div>
+        <div class="empty">No running environments in this project.</div>
       `;
       return;
     }
@@ -262,7 +276,7 @@ class AgentServiceImages extends HTMLElement {
     section.innerHTML = `
       <div class="project-header">
         <span>${this.esc(project)}</span>
-        <span class="project-meta">${state.rows.length} environment${state.rows.length === 1 ? '' : 's'}</span>
+        <span class="project-meta">${state.rows.length} running environment${state.rows.length === 1 ? '' : 's'}${this.esc(hiddenLabel)}</span>
       </div>
       <table>
         <thead>
